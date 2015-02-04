@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">DeskLights128 Controller</string>
+    <string name="title_section1">Alert</string>
+    <string name="title_section2">Color Table</string>
+    <string name="title_section3">Color Commands</string>
+    <string name="title_section4">Color Pixel</string>
+    <string name="title_section5">Color Wipe</string>
+    <string name="title_section6">Write Character</string>
+    <string name="title_section7">Pick a Color</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="action_example">Example action</string>
+    <string name="action_settings">Settings</string>
+
+</resources>
