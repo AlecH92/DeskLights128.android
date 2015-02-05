@@ -6,6 +6,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
+
+import com.getpebble.android.kit.PebbleKit;
 
 
 public class ColorCommandsFragment extends Fragment {
@@ -24,7 +27,33 @@ public class ColorCommandsFragment extends Fragment {
         rainbowButton = (Button) thisView.findViewById(R.id.rainbowButton);
         randomButton = (Button) thisView.findViewById(R.id.randomButton);
         kittButton = (Button) thisView.findViewById(R.id.kittButton);
-
+//pebble status text
+        TextView statusText = (TextView) thisView.findViewById(R.id.settingStatus);
+        if(MainActivity.wearInstalled) {
+            if (MainActivity.pebbleInstalled) {
+                boolean connected = PebbleKit.isWatchConnected(getActivity());
+                if (connected) {
+                    statusText.setText("Wear: Enabled | Pebble: Connected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "NULL"));
+                } else {
+                    statusText.setText("Wear: Enabled | Pebble: Disconnected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "NULL"));
+                }
+            }
+            else {
+                statusText.setText("Wear: Enabled | IP: " + MainActivity.sharedPrefs.getString("prefIP", "NULL"));
+            }
+        }
+        else if(MainActivity.pebbleInstalled) {
+            boolean connected = PebbleKit.isWatchConnected(getActivity());
+            if (connected) {
+                statusText.setText("Pebble: Connected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "NULL"));
+            } else {
+                statusText.setText("Pebble: Disconnected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "NULL"));
+            }
+        }
+        else {
+            statusText.setText("IP: " + MainActivity.sharedPrefs.getString("prefIP", "NULL"));
+        }
+        //end pebble status text
 
         rainbowButton.setOnClickListener(new View.OnClickListener() {
             @Override

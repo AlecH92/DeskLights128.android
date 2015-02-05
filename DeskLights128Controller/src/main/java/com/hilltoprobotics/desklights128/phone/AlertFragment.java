@@ -9,6 +9,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.getpebble.android.kit.PebbleKit;
+
 
 public class AlertFragment extends Fragment {
 
@@ -24,7 +26,33 @@ public class AlertFragment extends Fragment {
 
         updateButton = (Button) thisView.findViewById(R.id.updateButton);
         delayTime = (EditText) thisView.findViewById(R.id.delayTime);
-
+//pebble status text
+        TextView statusText = (TextView) thisView.findViewById(R.id.settingStatus);
+        if(MainActivity.wearInstalled) {
+            if (MainActivity.pebbleInstalled) {
+                boolean connected = PebbleKit.isWatchConnected(getActivity());
+                if (connected) {
+                    statusText.setText("Wear: Enabled | Pebble: Connected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "NULL"));
+                } else {
+                    statusText.setText("Wear: Enabled | Pebble: Disconnected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "NULL"));
+                }
+            }
+            else {
+                statusText.setText("Wear: Enabled | IP: " + MainActivity.sharedPrefs.getString("prefIP", "NULL"));
+            }
+        }
+        else if(MainActivity.pebbleInstalled) {
+            boolean connected = PebbleKit.isWatchConnected(getActivity());
+            if (connected) {
+                statusText.setText("Pebble: Connected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "NULL"));
+            } else {
+                statusText.setText("Pebble: Disconnected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "NULL"));
+            }
+        }
+        else {
+            statusText.setText("IP: " + MainActivity.sharedPrefs.getString("prefIP", "NULL"));
+        }
+        //end pebble status text
 
         updateButton.setOnClickListener(new View.OnClickListener() {
 

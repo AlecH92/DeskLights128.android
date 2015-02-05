@@ -233,7 +233,6 @@ public class ColorPicker extends View {
         super(context, attrs, defStyle);
         init(attrs, defStyle);
     }
-
     /**
      * An interface that is called whenever the color is changed. Currently it
      * is always called when the color is changes.

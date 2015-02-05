@@ -1,16 +1,15 @@
 apply plugin: 'com.android.application'
 
-
 android {
     compileSdkVersion 21
-    buildToolsVersion "20.0.0"
+    buildToolsVersion "21.1.2"
 
     defaultConfig {
-        applicationId "com.hilltoprobotics.desklights128"
+        applicationId "com.hilltoprobotics.desklights128.phone"
         minSdkVersion 20
         targetSdkVersion 21
-        versionCode 1
-        versionName "1.0"
+        versionCode 8
+        versionName "2.1"
     }
     buildTypes {
         release {
