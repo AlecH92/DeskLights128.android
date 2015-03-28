@@ -46,7 +46,7 @@ public class MainActivity extends Activity {
         String spokenText = voiceResults.get(0);
         card1.setText("Setting the table to " + spokenText);
         setContentView(card1View);
-        String url = "http://192.168.0.220/color?" + map.get(spokenText);
+        String url = "http://192.168.0.220/color?" + map.get(spokenText); //TODO how do we change this? card settings? check in to this
         final ThreadedRequest tReq = new ThreadedRequest(url);
         tReq.start(new Runnable()
         {
