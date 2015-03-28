@@ -207,6 +207,10 @@ public class MainActivity extends FragmentActivity
                 mTitle = getString(R.string.title_section6);
                 fragment = new WriteCharFragment();
                 break;
+            case 7:
+                mTitle = getString(R.string.title_section8);
+                fragment = new PlaySnakeFragment();
+                break;
         }
         if (fragment != null) {
             FragmentManager fragmentManager = getFragmentManager();
