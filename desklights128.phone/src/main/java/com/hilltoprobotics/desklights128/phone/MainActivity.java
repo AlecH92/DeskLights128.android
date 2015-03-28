@@ -66,7 +66,7 @@ public class MainActivity extends FragmentActivity
         initGoogleApiClient();
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-        IPAddress = sharedPrefs.getString("prefIP","127.0.0.1");
+        IPAddress = sharedPrefs.getString("prefIP","127.0.1.1");
 
         try {
             getPackageManager().getPackageInfo("com.google.android.wearable.app", PackageManager.GET_META_DATA);
