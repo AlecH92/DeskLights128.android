@@ -3,6 +3,7 @@ package com.hilltoprobotics.desklights128.phone;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 
+
 public class Settings extends PreferenceActivity {
  
     @SuppressWarnings("deprecation")
@@ -11,6 +12,7 @@ public class Settings extends PreferenceActivity {
         super.onCreate(savedInstanceState);
  
         addPreferencesFromResource(R.xml.settings);
+
  
     }
 }

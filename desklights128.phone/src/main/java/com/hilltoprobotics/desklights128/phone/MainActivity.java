@@ -4,8 +4,10 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -17,6 +19,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.getpebble.android.kit.PebbleKit;
+import com.getpebble.android.kit.util.PebbleDictionary;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
+import com.google.android.gms.wearable.Wearable;
+
+import java.util.UUID;
 
 import yuku.ambilwarna.AmbilWarnaDialog;
 
@@ -30,7 +42,14 @@ public class MainActivity extends FragmentActivity
     private NavigationDrawerFragment mNavigationDrawerFragment;
     public static ActionBar actionBar;
     public int theColor = -12303292;
-    public SharedPreferences sharedPrefs;
+    public static SharedPreferences sharedPrefs;
+    public static String IPAddress = "";
+    private static final String START_ACTIVITY = "/start_activity";
+    GoogleApiClient mApiClient = null;
+    private static final UUID APP_UUID = UUID.fromString("07a3fb4a-b4e5-4a98-9a5a-58bedcaf132f");
+    private static final int DATA_KEY = 0;
+    public static boolean wearInstalled = false;
+    public static boolean pebbleInstalled = false;
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
@@ -44,7 +63,78 @@ public class MainActivity extends FragmentActivity
         setContentView(R.layout.activity_main);
         int initialColor = 0;
 
+        initGoogleApiClient();
+
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        IPAddress = sharedPrefs.getString("prefIP","127.0.0.1");
+
+        try {
+            getPackageManager().getPackageInfo("com.google.android.wearable.app", PackageManager.GET_META_DATA);
+            wearInstalled = true;
+        } catch (PackageManager.NameNotFoundException e) {
+            wearInstalled = false;
+        }
+        try {
+            getPackageManager().getPackageInfo("com.getpebble.android", PackageManager.GET_META_DATA);
+            pebbleInstalled = true;
+        } catch (PackageManager.NameNotFoundException e) {
+            pebbleInstalled = false;
+        }
+
+        if(pebbleInstalled) {
+            PebbleKit.startAppOnPebble(getApplicationContext(), APP_UUID);
+            PebbleKit.PebbleDataReceiver dataHandler;
+            dataHandler = new PebbleKit.PebbleDataReceiver(APP_UUID) {
+                public void receiveData(Context context, int transactionId, PebbleDictionary data) {
+                    PebbleKit.sendAckToPebble(context, transactionId);
+                    int theData = data.getUnsignedIntegerAsLong(DATA_KEY).intValue();
+
+                    switch (theData) {
+                        case 0: {
+                            sendData("color?h=FF0000");
+                            break;
+                        }
+                        case 1: {
+                            sendData("color?h=FF6600");
+                            break;
+                        }
+                        case 2: {
+                            sendData("color?h=FFFF00");
+                            break;
+                        }
+                        case 3: {
+                            sendData("color?h=336600");
+                            break;
+                        }
+                        case 4: {
+                            sendData("color?h=003333");
+                            break;
+                        }
+                        case 5: {
+                            sendData("color?h=330033");
+                            break;
+                        }
+                        case 6: {
+                            sendData("default?id=1");
+                            break;
+                        }
+                        case 7: {
+                            sendData("default?id=2");
+                            break;
+                        }
+                        case 8: {
+                            sendData("default?id=3");
+                            break;
+                        }
+                        case 9: {
+                            sendData("off");
+                            break;
+                        }
+                    }
+                }
+            };
+            PebbleKit.registerReceivedDataHandler(getApplicationContext(), dataHandler);
+        }
 
        dialog = new AmbilWarnaDialog(this, initialColor, new AmbilWarnaDialog.OnAmbilWarnaListener() {
             @Override
@@ -71,7 +161,7 @@ public class MainActivity extends FragmentActivity
     }
 
     void sendData(String theData) {
-        String url = "http://" + sharedPrefs.getString("prefIP", "NULL") + "/" + theData;
+        String url = "http://" + sharedPrefs.getString("prefIP", "127.0.0.1") + "/" + theData;
         final ThreadedRequest tReq = new ThreadedRequest(url);
         tReq.start(new Runnable()
         {
@@ -116,6 +206,10 @@ public class MainActivity extends FragmentActivity
             case 6:
                 mTitle = getString(R.string.title_section6);
                 fragment = new WriteCharFragment();
+                break;
+            case 7:
+                mTitle = getString(R.string.title_section8);
+                fragment = new PlaySnakeFragment();
                 break;
         }
         if (fragment != null) {
@@ -163,6 +257,63 @@ public class MainActivity extends FragmentActivity
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        PebbleKit.startAppOnPebble(getApplicationContext(), APP_UUID);
+        PebbleKit.PebbleDataReceiver dataHandler;
+        dataHandler = new PebbleKit.PebbleDataReceiver(APP_UUID) {
+            public void receiveData(Context context, int transactionId, PebbleDictionary data) {
+                PebbleKit.sendAckToPebble(context, transactionId);
+                int theData = data.getUnsignedIntegerAsLong(DATA_KEY).intValue();
+
+                switch(theData) {
+                    case 0: {
+                        sendData("color?h=FF0000");
+                        break;
+                    }
+                    case 1: {
+                        sendData("color?h=FF6600");
+                        break;
+                    }
+                    case 2: {
+                        sendData("color?h=FFFF00");
+                        break;
+                    }
+                    case 3: {
+                        sendData("color?h=336600");
+                        break;
+                    }
+                    case 4: {
+                        sendData("color?h=003333");
+                        break;
+                    }
+                    case 5: {
+                        sendData("color?h=330033");
+                        break;
+                    }
+                    case 6: {
+                        sendData("default?id=1");
+                        break;
+                    }
+                    case 7: {
+                        sendData("default?id=2");
+                        break;
+                    }
+                    case 8: {
+                        sendData("default?id=3");
+                        break;
+                    }
+                    case 9: {
+                        sendData("off");
+                        break;
+                    }
+                }
+            }
+        };
+        PebbleKit.registerReceivedDataHandler(getApplicationContext(), dataHandler);
+    }
+
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -188,6 +339,7 @@ public class MainActivity extends FragmentActivity
         public PlaceholderFragment() {
         }
 
+
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
@@ -203,4 +355,30 @@ public class MainActivity extends FragmentActivity
         }
     }
 
+    private void initGoogleApiClient() {
+        mApiClient = new GoogleApiClient.Builder( this )
+                .addApi( Wearable.API )
+                .build();
+
+        mApiClient.connect();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        sendMessage( START_ACTIVITY, "" );
+    }
+
+    private void sendMessage( final String path, final String text ) {
+        new Thread( new Runnable() {
+            @Override
+            public void run() {
+                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes( mApiClient ).await();
+                for(Node node : nodes.getNodes()) {
+                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
+                            mApiClient, node.getId(), path, text.getBytes() ).await();
+                }
+
+            }
+        }).start();
+    }
 }

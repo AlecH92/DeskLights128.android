@@ -40,4 +40,17 @@
         android:layout_alignRight="@+id/delayTime"
         android:layout_alignEnd="@+id/delayTime"
         android:layout_marginTop="30dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:id="@+id/settingStatus"
+        android:gravity="center_vertical|center_horizontal"
+        android:hint="pebble status | current ip"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 </RelativeLayout>

@@ -22,6 +22,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 
+
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
  * See the <a href="https://developer.android.com/design/patterns/navigation-drawer.html#Interaction">
@@ -108,6 +109,7 @@ public class NavigationDrawerFragment extends Fragment {
                         getString(R.string.title_section4),
                         getString(R.string.title_section5),
                         getString(R.string.title_section6),
+                        getString(R.string.title_section8),
                 }));
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
         return mDrawerListView;
@@ -276,5 +278,7 @@ public class NavigationDrawerFragment extends Fragment {
          * Called when an item in the navigation drawer is selected.
          */
         void onNavigationDrawerItemSelected(int position);
+
+        void onConnected(Bundle bundle);
     }
 }

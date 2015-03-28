@@ -11,22 +11,28 @@ import android.widget.TextView;
 import com.getpebble.android.kit.PebbleKit;
 
 
-public class ColorCommandsFragment extends Fragment {
+public class PlaySnakeFragment extends Fragment {
 
-    public Button rainbowButton;
-    public Button randomButton;
-    public Button kittButton;
+    public Button upButton;
+    public Button downButton;
+    public Button leftButton;
+    public Button rightButton;
+    public Button startButton;
+    public Button resetButton;
     private View thisView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        thisView = inflater.inflate(R.layout.fragment_colorcommands, container, false);
+        thisView =inflater.inflate(R.layout.fragment_playsnake, container, false);
         final MainActivity activity = (MainActivity) getActivity();
 
-        rainbowButton = (Button) thisView.findViewById(R.id.rainbowButton);
-        randomButton = (Button) thisView.findViewById(R.id.randomButton);
-        kittButton = (Button) thisView.findViewById(R.id.kittButton);
+        startButton = (Button) thisView.findViewById(R.id.button6);
+        resetButton = (Button) thisView.findViewById(R.id.button5);
+        downButton = (Button) thisView.findViewById(R.id.button4);
+        rightButton = (Button) thisView.findViewById(R.id.button3);
+        leftButton = (Button) thisView.findViewById(R.id.button2);
+        upButton = (Button) thisView.findViewById(R.id.button);
 //pebble status text
         TextView statusText = (TextView) thisView.findViewById(R.id.settingStatus);
         if(MainActivity.wearInstalled) {
@@ -55,24 +61,51 @@ public class ColorCommandsFragment extends Fragment {
         }
         //end pebble status text
 
-        rainbowButton.setOnClickListener(new View.OnClickListener() {
+        startButton.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                String whatToSend = "default?id=1";
+                String whatToSend = "snake?id=6";
                 activity.sendData(whatToSend);
             }
         });
-        randomButton.setOnClickListener(new View.OnClickListener() {
+        leftButton.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                String whatToSend = "default?id=2";
+                String whatToSend = "snake?id=1";
                 activity.sendData(whatToSend);
             }
         });
-        kittButton.setOnClickListener(new View.OnClickListener() {
+        rightButton.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                String whatToSend = "default?id=3";
+                String whatToSend = "snake?id=2";
+                activity.sendData(whatToSend);
+            }
+        });
+        upButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                String whatToSend = "snake?id=3";
+                activity.sendData(whatToSend);
+            }
+        });
+        downButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                String whatToSend = "snake?id=4";
+                activity.sendData(whatToSend);
+            }
+        });
+        resetButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                String whatToSend = "snake?id=5";
                 activity.sendData(whatToSend);
             }
         });
