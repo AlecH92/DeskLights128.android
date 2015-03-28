@@ -1,2 +1,2 @@
-include ':wear', ':DeskLights128Controller', 'colorPicker'
+include ':wear', ':DeskLights128Controller', ':desklights128.glass', 'colorPicker'
 include ':warnaColorPicker'
