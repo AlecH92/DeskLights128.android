@@ -1,6 +1,7 @@
 package com.hilltoprobotics.desklights128.phone;
 
 import android.app.Fragment;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,8 @@ public class ColorAllFragment extends Fragment {
 
     public Button updateButton;
     private View thisView;
+    private TextView statusText;
+    private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -23,8 +26,27 @@ public class ColorAllFragment extends Fragment {
         final MainActivity activity = (MainActivity) getActivity();
 
         updateButton = (Button) thisView.findViewById(R.id.updateButton);
-//pebble status text
-        TextView statusText = (TextView) thisView.findViewById(R.id.settingStatus);
+        statusText = (TextView) thisView.findViewById(R.id.settingStatus);
+        loadStrings();
+        prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+                loadStrings();
+            }
+        };
+        MainActivity.sharedPrefs.registerOnSharedPreferenceChangeListener(prefListener);
+
+        updateButton.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    String whatToSend = "color?h=" + Integer.toHexString(activity.theColor).toUpperCase().substring(2);
+                    activity.sendData(whatToSend);
+                }
+            });
+            return thisView;
+        }
+
+    void loadStrings() {
         if(MainActivity.wearInstalled) {
             if (MainActivity.pebbleInstalled) {
                 boolean connected = PebbleKit.isWatchConnected(getActivity());
@@ -49,17 +71,5 @@ public class ColorAllFragment extends Fragment {
         else {
             statusText.setText("IP: " + MainActivity.sharedPrefs.getString("prefIP", "127.0.0.1"));
         }
-        //end pebble status text
-
-        updateButton.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    String whatToSend = "color?h=" + Integer.toHexString(activity.theColor).toUpperCase().substring(2);
-                    activity.sendData(whatToSend);
-                }
-            });
-            return thisView;
-        }
-
+    }
 }

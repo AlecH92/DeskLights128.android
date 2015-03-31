@@ -1,6 +1,7 @@
 package com.hilltoprobotics.desklights128.phone;
 
 import android.app.Fragment;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +21,8 @@ public class PlaySnakeFragment extends Fragment {
     public Button startButton;
     public Button resetButton;
     private View thisView;
+    private TextView statusText;
+    private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -33,33 +36,14 @@ public class PlaySnakeFragment extends Fragment {
         rightButton = (Button) thisView.findViewById(R.id.button3);
         leftButton = (Button) thisView.findViewById(R.id.button2);
         upButton = (Button) thisView.findViewById(R.id.button);
-//pebble status text
-        TextView statusText = (TextView) thisView.findViewById(R.id.settingStatus);
-        if(MainActivity.wearInstalled) {
-            if (MainActivity.pebbleInstalled) {
-                boolean connected = PebbleKit.isWatchConnected(getActivity());
-                if (connected) {
-                    statusText.setText("Wear: Enabled | Pebble: Connected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "127.0.0.1"));
-                } else {
-                    statusText.setText("Wear: Enabled | Pebble: Disconnected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "127.0.0.1"));
-                }
+        statusText = (TextView) thisView.findViewById(R.id.settingStatus);
+        loadStrings();
+        prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+                loadStrings();
             }
-            else {
-                statusText.setText("Wear: Enabled | IP: " + MainActivity.sharedPrefs.getString("prefIP", "127.0.0.1"));
-            }
-        }
-        else if(MainActivity.pebbleInstalled) {
-            boolean connected = PebbleKit.isWatchConnected(getActivity());
-            if (connected) {
-                statusText.setText("Pebble: Connected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "127.0.0.1"));
-            } else {
-                statusText.setText("Pebble: Disconnected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "127.0.0.1"));
-            }
-        }
-        else {
-            statusText.setText("IP: " + MainActivity.sharedPrefs.getString("prefIP", "127.0.0.1"));
-        }
-        //end pebble status text
+        };
+        MainActivity.sharedPrefs.registerOnSharedPreferenceChangeListener(prefListener);
 
         startButton.setOnClickListener(new View.OnClickListener() {
 
@@ -112,4 +96,30 @@ public class PlaySnakeFragment extends Fragment {
         return thisView;
     }
 
+    void loadStrings() {
+        if(MainActivity.wearInstalled) {
+            if (MainActivity.pebbleInstalled) {
+                boolean connected = PebbleKit.isWatchConnected(getActivity());
+                if (connected) {
+                    statusText.setText("Wear: Enabled | Pebble: Connected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "127.0.0.1"));
+                } else {
+                    statusText.setText("Wear: Enabled | Pebble: Disconnected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "127.0.0.1"));
+                }
+            }
+            else {
+                statusText.setText("Wear: Enabled | IP: " + MainActivity.sharedPrefs.getString("prefIP", "127.0.0.1"));
+            }
+        }
+        else if(MainActivity.pebbleInstalled) {
+            boolean connected = PebbleKit.isWatchConnected(getActivity());
+            if (connected) {
+                statusText.setText("Pebble: Connected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "127.0.0.1"));
+            } else {
+                statusText.setText("Pebble: Disconnected | IP: " + MainActivity.sharedPrefs.getString("prefIP", "127.0.0.1"));
+            }
+        }
+        else {
+            statusText.setText("IP: " + MainActivity.sharedPrefs.getString("prefIP", "127.0.0.1"));
+        }
+    }
 }
