@@ -1,1 +1,5 @@
-include ':DeskLights128.wear',':DeskLights128.phone',':DeskLights128.glass', ':desklights128.phone','colorPicker',':warnaColorPicker'
+include ':DeskLights128.wear',
+        ':DeskLights128.glass',
+        ':desklights128.phone',
+        ':colorPicker',
+        ':warnaColorPicker'
