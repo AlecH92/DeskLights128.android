@@ -59,7 +59,7 @@ public class WriteCharFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-                String whatToSend = "write?c=" + delayTime.getText();
+                String whatToSend = "write?l=" + delayTime.getText().length() + "&c=" + delayTime.getText();
                 activity.sendData(whatToSend);
             }
         });
