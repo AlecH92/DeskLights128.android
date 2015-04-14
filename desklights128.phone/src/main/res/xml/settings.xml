@@ -15,6 +15,13 @@
             android:key="pebbleStatus"
             android:enabled="false"/>
 
+        <EditTextPreference
+        android:title="Bonjour Discovered Table"
+        android:id="@+id/bonjourTable"
+        android:summary="None discovered"
+        android:key="aBonjourIP"
+        android:enabled="false"/>
+
     </PreferenceCategory>
      
 </PreferenceScreen>

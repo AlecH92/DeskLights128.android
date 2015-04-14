@@ -26,4 +26,5 @@ dependencies {
     compile 'com.google.android.gms:play-services:7.0.0'
     compile project(':warnaColorPicker')
     wearApp project(':DeskLights128.wear')
+    compile 'com.github.rickyclarkson:jmdns:3.4.2-r353-1'
 }

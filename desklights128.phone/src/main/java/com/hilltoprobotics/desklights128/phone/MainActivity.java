@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,13 +29,18 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
+import java.io.IOException;
 import java.util.UUID;
+
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceEvent;
+import javax.jmdns.ServiceListener;
 
 import yuku.ambilwarna.AmbilWarnaDialog;
 
 
 public class MainActivity extends FragmentActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks, ServiceListener {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -50,6 +56,13 @@ public class MainActivity extends FragmentActivity
     private static final int DATA_KEY = 0;
     public static boolean wearInstalled = false;
     public static boolean pebbleInstalled = false;
+    android.net.wifi.WifiManager.MulticastLock lock;
+    public static JmDNS jmdns;
+    private String type = "_http._tcp.local.";
+    private static String TAG = "dl128";
+    public static String bonjourIP = "None discovered";
+    android.os.Handler handler = new android.os.Handler();
+    private boolean connected = false;
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
@@ -66,7 +79,7 @@ public class MainActivity extends FragmentActivity
         initGoogleApiClient();
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-        IPAddress = sharedPrefs.getString("prefIP","127.0.1.1");
+        IPAddress = sharedPrefs.getString("prefIP", "127.0.1.1");
 
         try {
             getPackageManager().getPackageInfo("com.google.android.wearable.app", PackageManager.GET_META_DATA);
@@ -158,6 +171,62 @@ public class MainActivity extends FragmentActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                setUp();
+                Log.d(TAG, "enabling jmdns");
+                ThreadExecutor.runTask(new Runnable() {
+
+                    public void run() {
+                        try {
+                            jmdns = JmDNS.create();
+                            jmdns.addServiceListener(type, MainActivity.this);
+                            connected = true;
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+                });
+            }
+        }, 1000);
+
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                setUp();
+                jmdns.removeServiceListener(type, MainActivity.this);
+
+                ThreadExecutor.runTask(new Runnable() {
+
+                    public void run() {
+                        try {
+                            jmdns.close();
+                            jmdns = null;
+                        } catch (IOException e) {
+                            Log.d(TAG, String.format("ZeroConf Error: %s", e.getMessage()));
+                        }
+                    }
+                });
+
+                lock.release();
+                lock = null;
+                connected = false;
+            }
+        }, 3000);
+    }
+
+    private void setUp() { //set up wifi multicast lock
+        android.net.wifi.WifiManager wifi =
+                (android.net.wifi.WifiManager)
+                        getSystemService(android.content.Context.WIFI_SERVICE);
+        lock = wifi.createMulticastLock("jmDNSlock");
+        lock.setReferenceCounted(true);
+        lock.acquire();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (lock != null) lock.release(); //release wifi multicast lock
     }
 
     void sendData(String theData) {
@@ -312,6 +381,28 @@ public class MainActivity extends FragmentActivity
             }
         };
         PebbleKit.registerReceivedDataHandler(getApplicationContext(), dataHandler);
+    }
+
+    @Override
+    public void serviceResolved(ServiceEvent ev) {
+        String additions = "";
+        if (ev.getInfo().getInetAddresses() != null && ev.getInfo().getInetAddresses().length > 0) {
+            additions = ev.getInfo().getInetAddresses()[0].getHostAddress();
+        }
+        Log.d(TAG, "Service resolved: " + ev.getInfo().getQualifiedName() + " port:" + ev.getInfo().getPort() + additions);
+        MainActivity.bonjourIP = additions;
+    }
+
+    @Override
+    public void serviceRemoved(ServiceEvent ev) {
+        Log.d(TAG, "Service removed: " + ev.getName());
+    }
+
+    @Override
+    public void serviceAdded(ServiceEvent event) {
+        // Required to force serviceResolved to be called again (after the first search)
+        jmdns.requestServiceInfo(event.getType(), event.getName(), 1);
+        Log.d(TAG, event.getName());
     }
 
     /**
