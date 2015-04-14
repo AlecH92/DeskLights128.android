@@ -58,7 +58,7 @@ public class MainActivity extends FragmentActivity
     public static boolean pebbleInstalled = false;
     android.net.wifi.WifiManager.MulticastLock lock;
     public static JmDNS jmdns;
-    private String type = "_http._tcp.local.";
+    private String type = "_desklights._tcp.local.";
     private static String TAG = "dl128";
     public static String bonjourIP = "None discovered";
     android.os.Handler handler = new android.os.Handler();
