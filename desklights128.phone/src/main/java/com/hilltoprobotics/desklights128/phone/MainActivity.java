@@ -75,6 +75,7 @@ public class MainActivity extends FragmentActivity
     Notification.Builder mBuilder;
     NotificationManager mNotificationManager;
     public static StableArrayAdapter adapter;
+    public final ArrayList<String> list = new ArrayList<>();
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
@@ -427,8 +428,7 @@ public class MainActivity extends FragmentActivity
         }
         Log.d(TAG, "Service resolved: " + ev.getInfo().getQualifiedName() + " port:" + ev.getInfo().getPort() + additions);
         MainActivity.bonjourIP = additions;
-        final ArrayList<String> list = new ArrayList<>();
-        list.add(MainActivity.bonjourIP);
+        list.add(ev.getInfo().getName() + " - " + MainActivity.bonjourIP);
         adapter = new StableArrayAdapter(this,
                 android.R.layout.simple_list_item_1, list);
         mBuilder =
