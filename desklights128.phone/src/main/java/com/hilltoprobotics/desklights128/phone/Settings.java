@@ -13,8 +13,5 @@ public class Settings extends PreferenceActivity {
         super.onCreate(savedInstanceState);
  
         addPreferencesFromResource(R.xml.settings);
-
-        Preference pref = findPreference("aBonjourIP");
-            pref.setSummary(MainActivity.bonjourIP);
     }
 }

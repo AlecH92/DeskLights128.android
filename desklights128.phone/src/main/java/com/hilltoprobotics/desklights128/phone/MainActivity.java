@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.jmdns.JmDNS;
@@ -76,6 +77,9 @@ public class MainActivity extends FragmentActivity
     NotificationManager mNotificationManager;
     public static StableArrayAdapter adapter;
     public final ArrayList<String> list = new ArrayList<>();
+    static Map<Integer,String> theMap = new HashMap<>();
+    private Integer mapLoop = 0;
+    private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
@@ -107,6 +111,14 @@ public class MainActivity extends FragmentActivity
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         IPAddress = sharedPrefs.getString("prefIP", "127.0.1.1");
+
+        prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+                IPAddress = sharedPrefs.getString("prefIP", "127.0.1.1");
+                theMap.put(0, IPAddress);
+            }
+        };
+        MainActivity.sharedPrefs.registerOnSharedPreferenceChangeListener(prefListener);
 
         try {
             getPackageManager().getPackageInfo("com.google.android.wearable.app", PackageManager.GET_META_DATA);
@@ -242,6 +254,11 @@ public class MainActivity extends FragmentActivity
                 }
             }
         }, 3000);
+
+
+        theMap.put(0, IPAddress);
+        mapLoop++;
+        list.add("Select an item to set the current IP Address");
     }
 
     private void setUp() { //set up wifi multicast lock
@@ -428,6 +445,8 @@ public class MainActivity extends FragmentActivity
         }
         Log.d(TAG, "Service resolved: " + ev.getInfo().getQualifiedName() + " port:" + ev.getInfo().getPort() + additions);
         MainActivity.bonjourIP = additions;
+        theMap.put(mapLoop, MainActivity.bonjourIP);
+        mapLoop++;
         list.add(ev.getInfo().getName() + " - " + MainActivity.bonjourIP);
         adapter = new StableArrayAdapter(this,
                 android.R.layout.simple_list_item_1, list);
