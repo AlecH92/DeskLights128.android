@@ -23,7 +23,7 @@
         android:layout_below="@+id/rainbowButton"
         android:layout_alignRight="@+id/rainbowButton"
         android:layout_alignEnd="@+id/rainbowButton"
-        android:layout_marginTop="25dp" />
+        android:layout_marginTop="30dp" />
 
     <Button
         android:layout_width="wrap_content"
@@ -33,7 +33,9 @@
         android:layout_below="@+id/randomButton"
         android:layout_alignRight="@+id/randomButton"
         android:layout_alignEnd="@+id/randomButton"
-        android:layout_marginTop="25dp" />
+        android:layout_marginTop="30dp"
+        android:layout_alignLeft="@+id/randomButton"
+        android:layout_alignStart="@+id/randomButton" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -47,4 +49,16 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="All Off"
+        android:id="@+id/allOffButton"
+        android:layout_marginTop="30dp"
+        android:layout_below="@+id/kittButton"
+        android:layout_alignRight="@+id/kittButton"
+        android:layout_alignEnd="@+id/kittButton"
+        android:layout_alignLeft="@+id/kittButton"
+        android:layout_alignStart="@+id/kittButton" />
 </RelativeLayout>

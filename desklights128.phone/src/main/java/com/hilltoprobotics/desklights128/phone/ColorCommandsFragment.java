@@ -17,6 +17,7 @@ public class ColorCommandsFragment extends Fragment {
     public Button rainbowButton;
     public Button randomButton;
     public Button kittButton;
+    public Button allOffButton;
     private View thisView;
     private TextView statusText;
     private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
@@ -30,6 +31,7 @@ public class ColorCommandsFragment extends Fragment {
         rainbowButton = (Button) thisView.findViewById(R.id.rainbowButton);
         randomButton = (Button) thisView.findViewById(R.id.randomButton);
         kittButton = (Button) thisView.findViewById(R.id.kittButton);
+        allOffButton = (Button) thisView.findViewById(R.id.allOffButton);
         statusText = (TextView) thisView.findViewById(R.id.settingStatus);
         loadStrings();
         prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
@@ -57,6 +59,13 @@ public class ColorCommandsFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 String whatToSend = "default?id=3";
+                activity.sendData(whatToSend);
+            }
+        });
+        allOffButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String whatToSend = "default?id=4";
                 activity.sendData(whatToSend);
             }
         });
