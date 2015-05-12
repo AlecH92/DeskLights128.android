@@ -4,6 +4,9 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,6 +16,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,6 +24,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
@@ -30,6 +35,10 @@ import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.jmdns.JmDNS;
@@ -63,6 +72,14 @@ public class MainActivity extends FragmentActivity
     public static String bonjourIP = "None discovered";
     android.os.Handler handler = new android.os.Handler();
     private boolean connected = false;
+    public static int notificationID = 0;
+    Notification.Builder mBuilder;
+    NotificationManager mNotificationManager;
+    public static StableArrayAdapter adapter;
+    public final ArrayList<String> list = new ArrayList<>();
+    static Map<Integer,String> theMap = new HashMap<>();
+    private Integer mapLoop = 0;
+    private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
@@ -78,8 +95,30 @@ public class MainActivity extends FragmentActivity
 
         initGoogleApiClient();
 
+        FragmentManager fragmentManager = getFragmentManager();
+        String menuFragment = getIntent().getStringExtra("menufragment");
+        if (menuFragment != null) {
+            Log.d(TAG, menuFragment);
+            if (menuFragment.equals("BonjourTablesFragment")) {
+                fragmentManager.beginTransaction()
+                        .replace(R.id.container, PlaceholderFragment.newInstance(8)) //attach number 8, BonjourTablesFragment
+                        .commit();
+            }
+        }
+
+
+        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         IPAddress = sharedPrefs.getString("prefIP", "127.0.1.1");
+
+        prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+                IPAddress = sharedPrefs.getString("prefIP", "127.0.1.1");
+                theMap.put(0, IPAddress);
+            }
+        };
+        MainActivity.sharedPrefs.registerOnSharedPreferenceChangeListener(prefListener);
 
         try {
             getPackageManager().getPackageInfo("com.google.android.wearable.app", PackageManager.GET_META_DATA);
@@ -194,25 +233,32 @@ public class MainActivity extends FragmentActivity
         handler.postDelayed(new Runnable() {
             public void run() {
                 setUp();
-                jmdns.removeServiceListener(type, MainActivity.this);
+                if(jmdns != null) {
+                    jmdns.removeServiceListener(type, MainActivity.this);
 
-                ThreadExecutor.runTask(new Runnable() {
+                    ThreadExecutor.runTask(new Runnable() {
 
-                    public void run() {
-                        try {
-                            jmdns.close();
-                            jmdns = null;
-                        } catch (IOException e) {
-                            Log.d(TAG, String.format("ZeroConf Error: %s", e.getMessage()));
+                        public void run() {
+                            try {
+                                jmdns.close();
+                                jmdns = null;
+                            } catch (IOException e) {
+                                Log.d(TAG, String.format("ZeroConf Error: %s", e.getMessage()));
+                            }
                         }
-                    }
-                });
+                    });
 
-                lock.release();
-                lock = null;
-                connected = false;
+                    lock.release();
+                    lock = null;
+                    connected = false;
+                }
             }
         }, 3000);
+
+
+        theMap.put(0, IPAddress);
+        mapLoop++;
+        list.add("Select an item to set the current IP Address");
     }
 
     private void setUp() { //set up wifi multicast lock
@@ -226,6 +272,10 @@ public class MainActivity extends FragmentActivity
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
+        if(mNotificationManager != null) {
+            mNotificationManager.cancel(notificationID);
+        }
         if (lock != null) lock.release(); //release wifi multicast lock
     }
 
@@ -279,6 +329,10 @@ public class MainActivity extends FragmentActivity
             case 7:
                 mTitle = getString(R.string.title_section8);
                 fragment = new PlaySnakeFragment();
+                break;
+            case 8:
+                mTitle = getString(R.string.title_section9);
+                fragment = new BonjourTablesFragment();
                 break;
         }
         if (fragment != null) {
@@ -391,6 +445,37 @@ public class MainActivity extends FragmentActivity
         }
         Log.d(TAG, "Service resolved: " + ev.getInfo().getQualifiedName() + " port:" + ev.getInfo().getPort() + additions);
         MainActivity.bonjourIP = additions;
+        theMap.put(mapLoop, MainActivity.bonjourIP);
+        mapLoop++;
+        list.add(ev.getInfo().getName() + " - " + MainActivity.bonjourIP);
+        adapter = new StableArrayAdapter(this,
+                android.R.layout.simple_list_item_1, list);
+        mBuilder =
+                new Notification.Builder(this)
+                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setContentTitle("Bonjour Table Discovered")
+                        .setContentText(bonjourIP);
+// Creates an explicit intent for an Activity in your app
+        Intent resultIntent = new Intent(this, MainActivity.class);
+        resultIntent.putExtra("menufragment", "BonjourTablesFragment");
+
+// The stack builder object will contain an artificial back stack for the
+// started Activity.
+// This ensures that navigating backward from the Activity leads out of
+// your application to the Home screen.
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+// Adds the back stack for the Intent (but not the Intent itself)
+        stackBuilder.addParentStack(MainActivity.class);
+// Adds the Intent that starts the Activity to the top of the stack
+        stackBuilder.addNextIntent(resultIntent);
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(
+                        0,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
+        mBuilder.setContentIntent(resultPendingIntent);
+        mBuilder.setAutoCancel(true);
+        mNotificationManager.notify(notificationID, mBuilder.build());
     }
 
     @Override
@@ -434,8 +519,7 @@ public class MainActivity extends FragmentActivity
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            return rootView;
+            return inflater.inflate(R.layout.fragment_main, container, false);
         }
 
         @Override
@@ -471,5 +555,28 @@ public class MainActivity extends FragmentActivity
 
             }
         }).start();
+    }
+    private class StableArrayAdapter extends ArrayAdapter<String> {
+
+        HashMap<String, Integer> mIdMap = new HashMap<>();
+
+        public StableArrayAdapter(Context context, int textViewResourceId,
+                                  List<String> objects) {
+            super(context, textViewResourceId, objects);
+            for (int i = 0; i < objects.size(); ++i) {
+                mIdMap.put(objects.get(i), i);
+            }
+        }
+
+        @Override
+        public long getItemId(int position) {
+            String item = getItem(position);
+            return mIdMap.get(item);
+        }
+
+        @Override
+        public boolean hasStableIds() {
+            return true;
+        }
     }
 }
