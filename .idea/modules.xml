@@ -3,11 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/DeskLights128.android.iml" filepath="$PROJECT_DIR$/DeskLights128.android.iml" />
-      <module fileurl="file://$PROJECT_DIR$/desklights128.glass/DeskLights128.glass.iml" filepath="$PROJECT_DIR$/desklights128.glass/DeskLights128.glass.iml" />
+      <module fileurl="file://$PROJECT_DIR$/DeskLights128.glass/DeskLights128.glass.iml" filepath="$PROJECT_DIR$/DeskLights128.glass/DeskLights128.glass.iml" />
+      <module fileurl="file://$PROJECT_DIR$/DeskLights128.phone/DeskLights128.phone.iml" filepath="$PROJECT_DIR$/DeskLights128.phone/DeskLights128.phone.iml" />
       <module fileurl="file://$PROJECT_DIR$/DeskLights128.wear/DeskLights128.wear.iml" filepath="$PROJECT_DIR$/DeskLights128.wear/DeskLights128.wear.iml" />
-      <module fileurl="file://$PROJECT_DIR$/colorPicker/colorPicker.iml" filepath="$PROJECT_DIR$/colorPicker/colorPicker.iml" />
-      <module fileurl="file://$PROJECT_DIR$/desklights128.phone/desklights128.phone.iml" filepath="$PROJECT_DIR$/desklights128.phone/desklights128.phone.iml" />
-      <module fileurl="file://$PROJECT_DIR$/warnaColorPicker/warnaColorPicker.iml" filepath="$PROJECT_DIR$/warnaColorPicker/warnaColorPicker.iml" />
     </modules>
   </component>
 </project>
