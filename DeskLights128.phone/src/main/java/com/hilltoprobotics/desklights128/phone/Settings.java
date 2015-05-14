@@ -1,6 +1,8 @@
 package com.hilltoprobotics.desklights128.phone;
 
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 
@@ -13,5 +15,12 @@ public class Settings extends PreferenceActivity {
         super.onCreate(savedInstanceState);
  
         addPreferencesFromResource(R.xml.settings);
+        EditTextPreference editTextPref = (EditTextPreference) findPreference("appver");
+        try {
+            editTextPref
+                    .setSummary(getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        };
     }
 }

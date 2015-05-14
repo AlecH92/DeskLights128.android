@@ -15,6 +15,12 @@
             android:key="pebbleStatus"
             android:enabled="false"/>
 
+        <EditTextPreference
+            android:title="Version"
+            android:summary=""
+            android:enabled="false"
+            android:key="appver"/>
+
     </PreferenceCategory>
      
 </PreferenceScreen>
