@@ -42,7 +42,7 @@ public class WriteCharFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-                String whatToSend = "write?l=" + delayTime.getText().length() + "&c=" + delayTime.getText();
+                String whatToSend = "write?t=" + delayTime.getText() + "&h=" + Integer.toHexString(activity.theColor).toUpperCase().substring(2) + "&z=0";
                 activity.sendData(whatToSend);
             }
         });
