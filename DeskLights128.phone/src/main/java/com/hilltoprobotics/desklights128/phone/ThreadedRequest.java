@@ -3,23 +3,26 @@ package com.hilltoprobotics.desklights128.phone;
 import android.os.Handler;
 import android.util.Log;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class ThreadedRequest
 {
-    private String url;
+    private URL url;
     private Handler mHandler;
     private Runnable pRunnable;
 
     public ThreadedRequest(String newUrl)
     {
-        url = newUrl;
+        try {
+            url = new URL(newUrl);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
         mHandler = new Handler();
     }
 
@@ -34,21 +37,15 @@ public class ThreadedRequest
         public void run()
         {
             //Do you request here...
-        	Log.v("t", "Web Send: " + url);
-    			try
-    	    	{
-    	    		HttpClient hc = new DefaultHttpClient();
-    	    		HttpGet post = new HttpGet(url);
-
-    	    		HttpResponse rp = hc.execute(post);
-
-    	    		if(rp.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
-    	    		{
-    	    			
-    	    		}
-    	    	}catch(IOException e){
-    	    		e.printStackTrace();
-    	    	} 
+            Log.v("t", "Web Send: " + url);
+            try {
+                HttpURLConnection hc = (HttpURLConnection) url.openConnection();
+                InputStream in = new BufferedInputStream(hc.getInputStream());
+                in.read();
+                hc.disconnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             if (pRunnable == null || mHandler == null) return;
             mHandler.post(pRunnable);
         }
