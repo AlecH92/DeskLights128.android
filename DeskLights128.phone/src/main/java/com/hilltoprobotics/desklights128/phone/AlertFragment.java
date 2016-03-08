@@ -43,7 +43,7 @@ public class AlertFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-                String whatToSend = "alert?h=" + Integer.toHexString(activity.theColor).toUpperCase().substring(2) + "&d=" + delayTime.getText();
+                String whatToSend = "alert?h=" + Integer.toHexString(activity.theColor).toUpperCase().substring(2) + "&d=" + delayTime.getText() + "&z=0";
                 activity.sendData(whatToSend);
             }
         });

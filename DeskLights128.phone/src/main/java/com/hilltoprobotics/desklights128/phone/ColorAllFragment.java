@@ -39,7 +39,7 @@ public class ColorAllFragment extends Fragment {
 
                 @Override
                 public void onClick(View v) {
-                    String whatToSend = "color?h=" + Integer.toHexString(activity.theColor).toUpperCase().substring(2);
+                    String whatToSend = "color?h=" + Integer.toHexString(activity.theColor).toUpperCase().substring(2) + "&z=0";
                     activity.sendData(whatToSend);
                 }
             });

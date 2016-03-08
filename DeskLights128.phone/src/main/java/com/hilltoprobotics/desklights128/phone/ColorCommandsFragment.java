@@ -44,28 +44,28 @@ public class ColorCommandsFragment extends Fragment {
         rainbowButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String whatToSend = "default?id=1";
+                String whatToSend = "default?id=1&z=0";
                 activity.sendData(whatToSend);
             }
         });
         randomButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String whatToSend = "default?id=2";
+                String whatToSend = "default?id=2&z=0";
                 activity.sendData(whatToSend);
             }
         });
         kittButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String whatToSend = "default?id=3";
+                String whatToSend = "default?id=3&z=0";
                 activity.sendData(whatToSend);
             }
         });
         allOffButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String whatToSend = "default?id=4";
+                String whatToSend = "default?id=4&z=0";
                 activity.sendData(whatToSend);
             }
         });
