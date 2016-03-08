@@ -11,10 +11,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.getpebble.android.kit.PebbleKit;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 
 public class BonjourTablesFragment extends Fragment {
@@ -24,41 +29,13 @@ public class BonjourTablesFragment extends Fragment {
     private TextView statusText;
     private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
     private ListView theList;
-    NotificationManager mNotificationManager;
-    android.os.Handler handler = new android.os.Handler();
     public static SharedPreferences sharedPrefs;
+    public static final ArrayList<String> list = new ArrayList<String>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
-        mNotificationManager = (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
-
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                ThreadExecutor.runTask(new Runnable() {
-
-                    public void run() {
-                        mNotificationManager.cancelAll();
-                    }
-                });
-            }
-        }, 2000);
-
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                ThreadExecutor.runTask(new Runnable() {
-
-                    public void run() {
-                        mNotificationManager.cancelAll();
-                    }
-                });
-            }
-        }, 4000);
-
-
         thisView = inflater.inflate(R.layout.fragment_bonjour, container, false);
-        final MainActivity activity = (MainActivity) getActivity();
 
         theList = (ListView) thisView.findViewById(R.id.listView);
         statusText = (TextView) thisView.findViewById(R.id.settingStatus);
@@ -69,20 +46,17 @@ public class BonjourTablesFragment extends Fragment {
             }
         };
         MainActivity.sharedPrefs.registerOnSharedPreferenceChangeListener(prefListener);
+        final StableArrayAdapter adapter = new StableArrayAdapter(getActivity(),
+                android.R.layout.simple_list_item_1, list);
+        theList.setAdapter(adapter);
 
-        theList.setAdapter(MainActivity.adapter);
-        theList.setOnItemClickListener(new AdapterView.OnItemClickListener()
-        {
+        theList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1,int position, long arg3)
-            {
-                Log.d(TAG, String.valueOf(position));
-                Log.d(TAG, MainActivity.theMap.get(position));
+            public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                 sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-                sharedPrefs.edit().putString("prefIP", MainActivity.theMap.get(position)).apply();
+                sharedPrefs.edit().putString("prefIP", list.get(position)).apply();
             }
         });
-
         return thisView;
     }
 
@@ -107,6 +81,24 @@ public class BonjourTablesFragment extends Fragment {
             }
         } else {
             statusText.setText("IP: " + MainActivity.sharedPrefs.getString("prefIP", "127.0.0.1"));
+        }
+    }
+    private class StableArrayAdapter extends ArrayAdapter<String> {
+        HashMap<String, Integer> mIdMap = new HashMap<String, Integer>();
+        public StableArrayAdapter(Context context, int textViewResourceId, List<String> objects) {
+            super(context, textViewResourceId, objects);
+            for (int i = 0; i < objects.size(); ++i) {
+                mIdMap.put(objects.get(i), i);
+            }
+        }
+        @Override
+        public long getItemId(int position) {
+            String item = getItem(position);
+            return mIdMap.get(item);
+        }
+        @Override
+        public boolean hasStableIds() {
+            return true;
         }
     }
 }

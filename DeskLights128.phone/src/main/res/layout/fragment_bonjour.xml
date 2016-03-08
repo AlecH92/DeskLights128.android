@@ -2,28 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".BonjourFragment" ><![CDATA[
-
-
-
-
-    EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="number"
-        android:ems="10"
-        android:text="1000"
-        android:id="@+id/delayTime"
-        android:layout_toEndOf="@+id/textView"
-        android:layout_alignBottom="@+id/textView"
-        android:layout_toRightOf="@+id/textView"
-        android:layout_marginLeft="5dp"
-        android:layout_marginStart="5dp" />
-
-
-
-    ]]>
-
+    tools:context=".BonjourFragment" >
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -41,8 +20,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/listView"
-        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_above="@+id/settingStatus" />
+        android:layout_above="@+id/settingStatus"
+        android:layout_alignParentTop="true" />
+
 </RelativeLayout>
