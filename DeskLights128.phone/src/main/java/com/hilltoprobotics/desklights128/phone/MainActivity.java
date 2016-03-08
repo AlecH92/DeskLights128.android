@@ -4,19 +4,17 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.nsd.NsdManager;
+import android.net.nsd.NsdServiceInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,7 +22,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
@@ -34,26 +31,14 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-
-import javax.jmdns.JmDNS;
-import javax.jmdns.ServiceEvent;
-import javax.jmdns.ServiceListener;
 
 import yuku.ambilwarna.AmbilWarnaDialog;
 
 
 public class MainActivity extends FragmentActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks, ServiceListener {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
-    /**
-     * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
-     */
     private NavigationDrawerFragment mNavigationDrawerFragment;
     public static ActionBar actionBar;
     public int theColor = -12303292;
@@ -65,25 +50,10 @@ public class MainActivity extends FragmentActivity
     private static final int DATA_KEY = 0;
     public static boolean wearInstalled = false;
     public static boolean pebbleInstalled = false;
-    android.net.wifi.WifiManager.MulticastLock lock;
-    public static JmDNS jmdns;
-    private String type = "_desklights._tcp.local.";
     private static String TAG = "dl128";
-    public static String bonjourIP = "None discovered";
-    android.os.Handler handler = new android.os.Handler();
-    private boolean connected = false;
-    public static int notificationID = 0;
-    Notification.Builder mBuilder;
-    NotificationManager mNotificationManager;
-    public static StableArrayAdapter adapter;
-    public final ArrayList<String> list = new ArrayList<>();
-    static Map<Integer,String> theMap = new HashMap<>();
-    private Integer mapLoop = 0;
-    private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
-
-    /**
-     * Used to store the last screen title. For use in {@link #restoreActionBar()}.
-     */
+    NsdManager mNsdManager;
+    private String SERVICE_NAME = "Client Device";
+    private String SERVICE_TYPE = "_DeskLights._tcp.";
     private CharSequence mTitle;
     public AmbilWarnaDialog dialog;
 
@@ -106,16 +76,16 @@ public class MainActivity extends FragmentActivity
             }
         }
 
-
-        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        //setUp();
+        mNsdManager = (NsdManager) getSystemService(Context.NSD_SERVICE);
+        mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListener);
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         IPAddress = sharedPrefs.getString("prefIP", "127.0.1.1");
 
-        prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        SharedPreferences.OnSharedPreferenceChangeListener prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
                 IPAddress = sharedPrefs.getString("prefIP", "127.0.1.1");
-                theMap.put(0, IPAddress);
             }
         };
         MainActivity.sharedPrefs.registerOnSharedPreferenceChangeListener(prefListener);
@@ -188,6 +158,8 @@ public class MainActivity extends FragmentActivity
             PebbleKit.registerReceivedDataHandler(getApplicationContext(), dataHandler);
         }
 
+
+
        dialog = new AmbilWarnaDialog(this, initialColor, new AmbilWarnaDialog.OnAmbilWarnaListener() {
             @Override
             public void onOk(AmbilWarnaDialog dialog, int color) {
@@ -205,78 +177,9 @@ public class MainActivity extends FragmentActivity
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
-
-        // Set up the drawer.
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
-
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                setUp();
-                Log.d(TAG, "enabling jmdns");
-                ThreadExecutor.runTask(new Runnable() {
-
-                    public void run() {
-                        try {
-                            jmdns = JmDNS.create();
-                            jmdns.addServiceListener(type, MainActivity.this);
-                            connected = true;
-                        } catch (IOException e1) {
-                            e1.printStackTrace();
-                        }
-                    }
-                });
-            }
-        }, 1000);
-
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                setUp();
-                if(jmdns != null) {
-                    jmdns.removeServiceListener(type, MainActivity.this);
-
-                    ThreadExecutor.runTask(new Runnable() {
-
-                        public void run() {
-                            try {
-                                jmdns.close();
-                                jmdns = null;
-                            } catch (IOException e) {
-                                Log.d(TAG, String.format("ZeroConf Error: %s", e.getMessage()));
-                            }
-                        }
-                    });
-
-                    lock.release();
-                    lock = null;
-                    connected = false;
-                }
-            }
-        }, 3000);
-
-
-        theMap.put(0, IPAddress);
-        mapLoop++;
-        list.add("Select an item to set the current IP Address");
-    }
-
-    private void setUp() { //set up wifi multicast lock
-        android.net.wifi.WifiManager wifi =
-                (android.net.wifi.WifiManager)
-                        getSystemService(android.content.Context.WIFI_SERVICE);
-        lock = wifi.createMulticastLock("jmDNSlock");
-        lock.setReferenceCounted(true);
-        lock.acquire();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if(mNotificationManager != null) {
-            mNotificationManager.cancel(notificationID);
-        }
-        if (lock != null) lock.release(); //release wifi multicast lock
     }
 
     void sendData(String theData) {
@@ -327,10 +230,6 @@ public class MainActivity extends FragmentActivity
                 fragment = new WriteCharFragment();
                 break;
             case 7:
-                mTitle = getString(R.string.title_section8);
-                fragment = new PlaySnakeFragment();
-                break;
-            case 8:
                 mTitle = getString(R.string.title_section9);
                 fragment = new BonjourTablesFragment();
                 break;
@@ -339,7 +238,7 @@ public class MainActivity extends FragmentActivity
             FragmentManager fragmentManager = getFragmentManager();
             fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
         }
-        }
+    }
 
 
     public void restoreActionBar() {
@@ -353,9 +252,6 @@ public class MainActivity extends FragmentActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         if (!mNavigationDrawerFragment.isDrawerOpen()) {
-            // Only show items in the action bar relevant to this screen
-            // if the drawer is not showing. Otherwise, let the drawer
-            // decide what to show in the action bar.
             getMenuInflater().inflate(R.menu.main, menu);
             restoreActionBar();
             return true;
@@ -365,9 +261,6 @@ public class MainActivity extends FragmentActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             Intent i = new Intent(this, Settings.class);
@@ -437,73 +330,8 @@ public class MainActivity extends FragmentActivity
         PebbleKit.registerReceivedDataHandler(getApplicationContext(), dataHandler);
     }
 
-    @Override
-    public void serviceResolved(ServiceEvent ev) {
-        String additions = "";
-        if (ev.getInfo().getInetAddresses() != null && ev.getInfo().getInetAddresses().length > 0) {
-            additions = ev.getInfo().getInetAddresses()[0].getHostAddress();
-        }
-        Log.d(TAG, "Service resolved: " + ev.getInfo().getQualifiedName() + " port:" + ev.getInfo().getPort() + additions);
-        MainActivity.bonjourIP = additions;
-        theMap.put(mapLoop, MainActivity.bonjourIP);
-        mapLoop++;
-        list.add(ev.getInfo().getName() + " - " + MainActivity.bonjourIP);
-        adapter = new StableArrayAdapter(this,
-                android.R.layout.simple_list_item_1, list);
-        mBuilder =
-                new Notification.Builder(this)
-                        .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle("Bonjour Table Discovered")
-                        .setContentText(bonjourIP);
-// Creates an explicit intent for an Activity in your app
-        Intent resultIntent = new Intent(this, MainActivity.class);
-        resultIntent.putExtra("menufragment", "BonjourTablesFragment");
-
-// The stack builder object will contain an artificial back stack for the
-// started Activity.
-// This ensures that navigating backward from the Activity leads out of
-// your application to the Home screen.
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-// Adds the back stack for the Intent (but not the Intent itself)
-        stackBuilder.addParentStack(MainActivity.class);
-// Adds the Intent that starts the Activity to the top of the stack
-        stackBuilder.addNextIntent(resultIntent);
-        PendingIntent resultPendingIntent =
-                stackBuilder.getPendingIntent(
-                        0,
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                );
-        mBuilder.setContentIntent(resultPendingIntent);
-        mBuilder.setAutoCancel(true);
-        mNotificationManager.notify(notificationID, mBuilder.build());
-    }
-
-    @Override
-    public void serviceRemoved(ServiceEvent ev) {
-        Log.d(TAG, "Service removed: " + ev.getName());
-    }
-
-    @Override
-    public void serviceAdded(ServiceEvent event) {
-        // Required to force serviceResolved to be called again (after the first search)
-        jmdns.requestServiceInfo(event.getType(), event.getName(), 1);
-        Log.d(TAG, event.getName());
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
     public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
         private static final String ARG_SECTION_NUMBER = "section_number";
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
         public static PlaceholderFragment newInstance(int sectionNumber) {
             PlaceholderFragment fragment = new PlaceholderFragment();
             Bundle args = new Bundle();
@@ -556,27 +384,66 @@ public class MainActivity extends FragmentActivity
             }
         }).start();
     }
-    private class StableArrayAdapter extends ArrayAdapter<String> {
 
-        HashMap<String, Integer> mIdMap = new HashMap<>();
+    NsdManager.DiscoveryListener mDiscoveryListener = new NsdManager.DiscoveryListener() {
+        @Override
+        public void onDiscoveryStarted(String regType) {
+            Log.d(TAG, "Service discovery started");
+        }
+        @Override
+        public void onServiceFound(NsdServiceInfo service) {
+            Log.d(TAG, "Service discovery success : " + service);
+            Log.d(TAG, "Host = "+ service.getServiceName());
+            Log.d(TAG, "port = " + String.valueOf(service.getPort()));
 
-        public StableArrayAdapter(Context context, int textViewResourceId,
-                                  List<String> objects) {
-            super(context, textViewResourceId, objects);
-            for (int i = 0; i < objects.size(); ++i) {
-                mIdMap.put(objects.get(i), i);
+            if (!service.getServiceType().equals(SERVICE_TYPE)) {
+                Log.d(TAG, "Unknown Service Type: " + service.getServiceType());
+            } else if (service.getServiceName().equals(SERVICE_NAME)) {
+                Log.d(TAG, "Same machine: " + SERVICE_NAME);
+            } else {
+                Log.d(TAG, "Diff Machine : " + service.getServiceName());
+                mNsdManager.resolveService(service, mResolveListener);
             }
         }
 
         @Override
-        public long getItemId(int position) {
-            String item = getItem(position);
-            return mIdMap.get(item);
+        public void onServiceLost(NsdServiceInfo service) {
+            Log.e(TAG, "service lost" + service);
         }
 
         @Override
-        public boolean hasStableIds() {
-            return true;
+        public void onDiscoveryStopped(String serviceType) {
+            Log.i(TAG, "Discovery stopped: " + serviceType);
         }
-    }
+
+        @Override
+        public void onStartDiscoveryFailed(String serviceType, int errorCode) {
+            Log.e(TAG, "Discovery failed: Error code:" + errorCode);
+            mNsdManager.stopServiceDiscovery(this);
+        }
+
+        @Override
+        public void onStopDiscoveryFailed(String serviceType, int errorCode) {
+            Log.e(TAG, "Discovery failed: Error code:" + errorCode);
+            mNsdManager.stopServiceDiscovery(this);
+        }
+    };
+
+    NsdManager.ResolveListener mResolveListener = new NsdManager.ResolveListener() {
+
+        @Override
+        public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
+            Log.e(TAG, "Resolve failed " + errorCode);
+            Log.e(TAG, "service = " + serviceInfo);
+        }
+        @Override
+        public void onServiceResolved(NsdServiceInfo serviceInfo) {
+            Log.d(TAG, "Resolve Succeeded. " + serviceInfo);
+            if (serviceInfo.getServiceName().equals(SERVICE_NAME)) {
+                Log.d(TAG, "Same IP.");
+                return;
+            }
+            BonjourTablesFragment.list.add(serviceInfo.getHost().toString().substring(1,serviceInfo.getHost().toString().length()));
+        }
+    };
 }
